@@ -24,9 +24,5 @@ x86/
 .DS_Store
 Thumbs.db
 
-# Audio files (te groot voor git)
-audio/*.wav
-audio/*.mp3
-
 # Claude Code
 .claude/
