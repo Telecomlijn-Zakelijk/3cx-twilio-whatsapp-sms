@@ -118,19 +118,21 @@ namespace dummy
                     switch (numberType)
                     {
                         case NumberType.DutchMobile:
+                        case NumberType.BelgianMobile:
                         case NumberType.International:
                             targetNumber = e164Number;
                             await ProcessMobileFlow(targetNumber);
                             break;
-                            
+
                         case NumberType.DutchLandline:
+                        case NumberType.BelgianLandline:
                             targetNumber = await ProcessLandlineFlow();
                             if (!string.IsNullOrEmpty(targetNumber))
                             {
                                 await SendSmsAndConfirm(targetNumber);
                             }
                             break;
-                            
+
                         default:
                             targetNumber = e164Number;
                             await ProcessMobileFlow(targetNumber);
@@ -250,7 +252,7 @@ namespace dummy
                 
                 MyCall.Info($"User entered: {enteredNumber}");
                 
-                if (!IsValidDutchMobile(enteredNumber))
+                if (!IsValidMobileNumber(enteredNumber))
                 {
                     MyCall.Info($"Invalid number: {enteredNumber}");
                     await PlayAudio(AudioInvalidNumber);
@@ -276,7 +278,7 @@ namespace dummy
                 if (confirmation == "1" || string.IsNullOrEmpty(confirmation))
                 {
                     MyCall.Info("Number confirmed");
-                    return FormatDutchMobileToE164(enteredNumber);
+                    return FormatMobileToE164(enteredNumber);
                 }
                 else if (confirmation == "2")
                 {
@@ -286,7 +288,7 @@ namespace dummy
                 else
                 {
                     MyCall.Info("Unexpected input, treating as confirm");
-                    return FormatDutchMobileToE164(enteredNumber);
+                    return FormatMobileToE164(enteredNumber);
                 }
             }
             
@@ -452,7 +454,7 @@ namespace dummy
         // NUMBER CLASSIFICATION
         // ═══════════════════════════════════════════════════════════════════
         
-        private enum NumberType { Unknown, DutchMobile, DutchLandline, International }
+        private enum NumberType { Unknown, DutchMobile, DutchLandline, BelgianMobile, BelgianLandline, International }
         
         private NumberType ClassifyNumber(string e164)
         {
@@ -464,7 +466,14 @@ namespace dummy
                     return NumberType.DutchMobile;
                 return NumberType.DutchLandline;
             }
-            
+
+            if (e164.StartsWith("+32"))
+            {
+                if (e164.StartsWith("+324") && e164.Length >= 11)
+                    return NumberType.BelgianMobile;
+                return NumberType.BelgianLandline;
+            }
+
             if (e164.StartsWith("+"))
                 return NumberType.International;
             
@@ -475,32 +484,40 @@ namespace dummy
         // NUMBER VALIDATION & FORMATTING
         // ═══════════════════════════════════════════════════════════════════
         
-        private bool IsValidDutchMobile(string input)
+        private bool IsValidMobileNumber(string input)
         {
             string cleaned = input.Replace(" ", "").Replace("-", "");
-            
+
+            foreach (char c in cleaned)
+                if (!char.IsDigit(c)) return false;
+
+            // Dutch mobile: 06xxxxxxxx (10 digits) or 6xxxxxxxx (9 digits)
             if (cleaned.StartsWith("06") && cleaned.Length == 10)
-            {
-                foreach (char c in cleaned)
-                    if (!char.IsDigit(c)) return false;
                 return true;
-            }
-            
             if (cleaned.StartsWith("6") && cleaned.Length == 9)
-            {
-                foreach (char c in cleaned)
-                    if (!char.IsDigit(c)) return false;
                 return true;
-            }
-            
+
+            // Belgian mobile: 04xxxxxxxx (10 digits) or 4xxxxxxxx (9 digits)
+            if (cleaned.StartsWith("04") && cleaned.Length == 10)
+                return true;
+            if (cleaned.StartsWith("4") && cleaned.Length == 9)
+                return true;
+
             return false;
         }
         
-        private string FormatDutchMobileToE164(string input)
+        private string FormatMobileToE164(string input)
         {
             string cleaned = input.Replace(" ", "").Replace("-", "");
+
+            // Belgian mobile: 04xx → +324xx
+            if (cleaned.StartsWith("04")) return "+32" + cleaned.Substring(1);
+            if (cleaned.StartsWith("4")) return "+32" + cleaned;
+
+            // Dutch mobile: 06xx → +316xx
             if (cleaned.StartsWith("06")) return "+31" + cleaned.Substring(1);
             if (cleaned.StartsWith("6")) return "+31" + cleaned;
+
             return "+31" + cleaned;
         }
         
