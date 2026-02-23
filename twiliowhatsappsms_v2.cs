@@ -32,7 +32,7 @@ namespace dummy
         private const string TwilioAccountSid = "JOUW_TWILIO_ACCOUNT_SID";
         private const string TwilioAuthToken = "JOUW_TWILIO_AUTH_TOKEN";
 
-        // The E.164 phone number you purchased in Twilio (e.g. "+31612345678")
+        // The E.164 phone number you purchased in Twilio (e.g. "+3197010223140")
         private const string TwilioSenderPhoneNumber = "+31XXXXXXXXX";
 
         private const string SmsMessage = "Stel direct uw vraag via WhatsApp: https://jouw-domein.nl/link";
