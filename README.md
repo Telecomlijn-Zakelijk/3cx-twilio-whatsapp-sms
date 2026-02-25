@@ -131,6 +131,8 @@ Maak de volgende `.wav`-bestanden aan (PCM, 8kHz of 16kHz, mono). Je kunt hiervo
 
 Plaats alle bestanden in de map `Callflows/twiliowhatsappsms/` op je 3CX server.
 
+/var/lib/3cxpbx/Instance1/Data/Ivr/Prompts/Callflows
+
 Zie de [volledige lijst](#audiobestanden) hieronder.
 
 ### Stap 4: Script uploaden naar 3CX
